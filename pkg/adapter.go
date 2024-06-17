@@ -1,6 +1,10 @@
 package pkg
 
-import "github.com/songgao/water"
+import (
+	"runtime"
+
+	"github.com/songgao/water"
+)
 
 type Adapter struct {
 	Interface *water.Interface
@@ -10,8 +14,11 @@ func NewAdapter(name string) (*Adapter, error) {
 	config := water.Config{
 		DeviceType: water.TUN,
 	}
-	config.Name = name
 
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		config.Name = name
+	}
+	
 	ifce, err := water.New(config)
 	if err != nil {
 		return nil, err

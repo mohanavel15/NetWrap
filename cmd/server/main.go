@@ -11,16 +11,16 @@ import (
 )
 
 func main() {
-	port := *flag.String("port", "5000", "Port number for the server to run on")
+	port := flag.String("port", "5000", "Port number for the server to run on")
 	flag.Parse()
 
-	adapter, err := pkg.NewAdapter("exit_node")
+	adapter, err := pkg.NewAdapter("tunnel")
 	if err != nil {
 		log.Fatal("Error:", err.Error())
 	}
 
 	server := http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
+		Addr:    fmt.Sprintf(":%s", *port),
 		Handler: &HttpHandler{Adp: adapter},
 	}
 

@@ -12,7 +12,7 @@ func Relay(src, dst Transport) {
 		buffer, err := src.RX()
 		if err != nil {
 			log.Println("Unable Read: ", err.Error())
-			continue
+			continue // TODO: How handle without breaking the loop
 		}
 
 		err = dst.TX(buffer)
