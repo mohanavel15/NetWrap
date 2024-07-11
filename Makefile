@@ -7,3 +7,6 @@ client:
 server:
 	go build cmd/server/main.go
 	mv main build/server
+.PHONY: clean
+clean:
+	rm build/*
