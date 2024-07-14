@@ -2,7 +2,6 @@ package main
 
 import (
 	"NetWrap/pkg"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
@@ -40,16 +39,17 @@ func main() {
 	}
 
 	wconn := pkg.NewWrappedWsConn(wsconn)
-	config := &tls.Config{
-		ServerName:         "example.com",
-		InsecureSkipVerify: false,
-		Certificates:       []tls.Certificate{},
-		RootCAs:            nil,
-		MinVersion:         tls.VersionTLS12,
-		MaxVersion:         tls.VersionTLS13,
-	}
+	// config := &tls.Config{
+	// 	ServerName:         "example.com",
+	// 	InsecureSkipVerify: false,
+	// 	Certificates:       []tls.Certificate{},
+	// 	RootCAs:            nil,
+	// 	MinVersion:         tls.VersionTLS12,
+	// 	MaxVersion:         tls.VersionTLS13,
+	// }
 
-	conn := tls.Client(wconn, config)
+	// conn := tls.Client(wconn, config)
+	conn := wconn
 
 	// gateway, err := pkg.NewNode(*ip, *host)
 	// if err != nil {

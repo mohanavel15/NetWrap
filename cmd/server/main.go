@@ -4,8 +4,11 @@ import (
 	"NetWrap/pkg"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"net"
 	"net/http"
+	"os/exec"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,18 +22,41 @@ func main() {
 		log.Fatal("Error:", err.Error())
 	}
 
+	// err = adapter.SetUpFd()
+	// fmt.Println(err)
+	// err = adapter.SetIP(net.IPv4(10, 10, 1, 1))
+	// fmt.Println(err)
+	// err = adapter.SetUp()
+	// fmt.Println(err)
+	configureIPTables()
+
+	conns := make(chan net.Conn, 10)
+
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%s", *port),
-		Handler: &HttpHandler{Adp: adapter},
+		Handler: &HttpHandler{conns: conns},
 	}
 
-	server.ListenAndServe()
+	go server.ListenAndServe()
+
+	for {
+
+		conn := <-conns
+		go io.Copy(adapter.Interface, conn)
+		go io.Copy(conn, adapter.Interface)
+	}
+}
+
+func configureIPTables() error {
+	// iptables -t nat -A POSTROUTING -j MASQUERADE
+	cmd := exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-j", "MASQURADE")
+	return cmd.Run()
 }
 
 var upgrader = websocket.Upgrader{}
 
 type HttpHandler struct {
-	Adp *pkg.Adapter
+	conns chan net.Conn
 }
 
 func (h *HttpHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
@@ -40,7 +66,9 @@ func (h *HttpHandler) ServeHTTP(response http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	node := pkg.NewNodeFromConn(conn)
-	go pkg.Relay(node, h.Adp)
-	pkg.Relay(h.Adp, node)
+	wconn := pkg.NewWrappedWsConn(conn)
+	h.conns <- wconn
+	// node := pkg.NewNodeFromConn(conn)
+	// go pkg.Relay(node, h.Adp)
+	// pkg.Relay(h.Adp, node)
 }
